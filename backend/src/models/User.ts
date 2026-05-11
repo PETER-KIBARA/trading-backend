@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { DerivAccount } from './DerivAccount.js';
 import { Subscription } from './Subscription.js';
 import { Notification } from './Notification.js';
 import { RiskSettings } from './RiskSettings.js';
@@ -70,9 +69,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lastLogin?: Date;
 
-  // Relations
-  @OneToMany(() => DerivAccount, (account) => account.user, { cascade: true })
-  derivAccounts!: DerivAccount[];
+  // Relations (string-based to avoid circular dependencies)
+  @OneToMany('DerivAccount', (account: any) => account.user, { cascade: true })
+  derivAccounts!: any[];
 
   @OneToMany(() => Subscription, (sub) => sub.user, { cascade: true })
   subscriptions!: Subscription[];

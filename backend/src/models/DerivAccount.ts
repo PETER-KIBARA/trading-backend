@@ -8,8 +8,6 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { User } from './User.js';
-import { Trade } from './Trade.js';
 
 @Entity('deriv_accounts')
 export class DerivAccount {
@@ -61,10 +59,10 @@ export class DerivAccount {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  // Relations (string-based to avoid circular dependencies)
-  @ManyToOne(() => User, (user) => user.derivAccounts, { onDelete: 'CASCADE' })
+  // Relations (all string-based to avoid circular dependencies)
+  @ManyToOne('User', (user: any) => user.derivAccounts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: any;
 
   @OneToMany('Bot', (bot: any) => bot.derivAccount, { cascade: true })
   bots!: any[];
