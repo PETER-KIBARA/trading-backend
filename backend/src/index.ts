@@ -1,6 +1,7 @@
 import { createApp, initializeDatabase, startServer } from './app.js';
 import { logger } from './utils/logger.js';
 
+// Trading Platform v1.0.0
 async function main(): Promise<void> {
   try {
     // Initialize database
