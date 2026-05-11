@@ -7,3 +7,4 @@ coverage
 backend/.env
 frontend/.env
 *.log
+RENDERER_DEPLOYMENT.md
