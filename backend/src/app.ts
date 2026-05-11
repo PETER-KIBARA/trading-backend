@@ -83,18 +83,26 @@ export async function initializeDatabase(): Promise<void> {
 }
 
 export async function startServer(server: http.Server): Promise<void> {
-  server.listen(ENV.PORT, () => {
-    logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
-  });
+  return new Promise((resolve, reject) => {
+    server.listen(ENV.PORT, '0.0.0.0', () => {
+      logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
+      resolve();
+    });
 
-  // Graceful shutdown
-  process.on('SIGINT', async () => {
-    logger.info('Graceful shutdown initiated');
-    server.close(async () => {
-      if (AppDataSource.isInitialized) {
-        await AppDataSource.destroy();
-      }
-      process.exit(0);
+    server.on('error', (error: any) => {
+      logger.error('Server error', error);
+      reject(error);
+    });
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      logger.info('Graceful shutdown initiated');
+      server.close(async () => {
+        if (AppDataSource.isInitialized) {
+          await AppDataSource.destroy();
+        }
+        process.exit(0);
+      });
     });
   });
 }
