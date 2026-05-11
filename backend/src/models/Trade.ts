@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { DerivAccount } from './DerivAccount.js';
 
 @Entity('trades')
 export class Trade {
@@ -86,8 +85,8 @@ export class Trade {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  // Relations
-  @ManyToOne(() => DerivAccount, (account) => account.trades, { onDelete: 'CASCADE' })
+  // Relations (string-based to avoid circular dependencies)
+  @ManyToOne('DerivAccount', (account: any) => account.trades, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'derivAccountId' })
-  derivAccount!: DerivAccount;
+  derivAccount!: any;
 }

@@ -5,11 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { User } from './User.js';
-import { DerivAccount } from './DerivAccount.js';
 
 @Entity('bots')
 export class Bot {
@@ -106,12 +103,12 @@ export class Bot {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  // Relations
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  // Relations (using string targets to avoid circular dependencies)
+  @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: any;
 
-  @ManyToOne(() => DerivAccount, (account) => account.bots, { onDelete: 'CASCADE' })
+  @ManyToOne('DerivAccount', (account: any) => account.bots, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'derivAccountId' })
-  derivAccount!: DerivAccount;
+  derivAccount!: any;
 }

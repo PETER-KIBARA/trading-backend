@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import http from 'http';
-import { AppDataSource, initializeEntities } from './config/database.js';
+import { AppDataSource } from './config/database.js';
 import { ENV } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -73,7 +73,6 @@ export async function createApp(): Promise<{ app: Express; server: http.Server }
 export async function initializeDatabase(): Promise<void> {
   try {
     if (!AppDataSource.isInitialized) {
-      await initializeEntities();
       await AppDataSource.initialize();
       logger.info('Database connection established');
     }

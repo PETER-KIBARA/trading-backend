@@ -1,10 +1,9 @@
-import { AppDataSource, initializeEntities } from '../config/database.js';
+import { AppDataSource } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 
 async function runMigrations(): Promise<void> {
   try {
     if (!AppDataSource.isInitialized) {
-      await initializeEntities();
       await AppDataSource.initialize();
     }
 
