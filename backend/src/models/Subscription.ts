@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from './User.js';
 
 @Entity('subscriptions')
 export class Subscription {
@@ -63,7 +62,7 @@ export class Subscription {
   updatedAt!: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.subscriptions, { onDelete: 'CASCADE' })
+  @ManyToOne('User', (user: any) => user.subscriptions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: any;
 }

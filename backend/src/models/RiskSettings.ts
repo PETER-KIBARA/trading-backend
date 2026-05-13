@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from './User.js';
 
 @Entity('risk_settings')
 export class RiskSettings {
@@ -60,7 +59,7 @@ export class RiskSettings {
   updatedAt!: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.riskSettings, { onDelete: 'CASCADE' })
+  @ManyToOne('User', (user: any) => user.riskSettings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: any;
 }

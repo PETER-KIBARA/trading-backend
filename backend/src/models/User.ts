@@ -6,9 +6,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Subscription } from './Subscription.js';
-import { Notification } from './Notification.js';
-import { RiskSettings } from './RiskSettings.js';
 
 @Entity('users')
 export class User {
@@ -73,12 +70,12 @@ export class User {
   @OneToMany('DerivAccount', (account: any) => account.user, { cascade: true })
   derivAccounts!: any[];
 
-  @OneToMany(() => Subscription, (sub) => sub.user, { cascade: true })
-  subscriptions!: Subscription[];
+  @OneToMany('Subscription', (sub: any) => sub.user, { cascade: true })
+  subscriptions!: any[];
 
-  @OneToMany(() => Notification, (notif) => notif.user, { cascade: true })
-  notifications!: Notification[];
+  @OneToMany('Notification', (notif: any) => notif.user, { cascade: true })
+  notifications!: any[];
 
-  @OneToMany(() => RiskSettings, (risk) => risk.user, { cascade: true })
-  riskSettings!: RiskSettings[];
+  @OneToMany('RiskSettings', (risk: any) => risk.user, { cascade: true })
+  riskSettings!: any[];
 }
