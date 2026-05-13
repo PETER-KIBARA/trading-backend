@@ -26,10 +26,34 @@ export class AddTradingRiskBotFields1715420000000 {
       ADD COLUMN IF NOT EXISTS "enableTakeProfit" boolean NOT NULL DEFAULT true,
       ADD COLUMN IF NOT EXISTS "customRules" json NOT NULL DEFAULT '{}'::json
     `);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bots_user_status" ON "bots" ("userId", "status")`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_trades_account_status" ON "trades" ("derivAccountId", "status")`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_trades_bot_status" ON "trades" ("botId", "status")`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_risk_settings_user" ON "risk_settings" ("userId")`);
+        await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bots' AND relkind = 'r') THEN
+          EXECUTE 'CREATE INDEX IF NOT EXISTS "idx_bots_user_status" ON "bots" ("userId", "status")';
+        END IF;
+      END
+      $$;
+    `);
+        await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'trades' AND relkind = 'r') THEN
+          EXECUTE 'CREATE INDEX IF NOT EXISTS "idx_trades_account_status" ON "trades" ("derivAccountId", "status")';
+          EXECUTE 'CREATE INDEX IF NOT EXISTS "idx_trades_bot_status" ON "trades" ("botId", "status")';
+        END IF;
+      END
+      $$;
+    `);
+        await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'risk_settings' AND relkind = 'r') THEN
+          EXECUTE 'CREATE INDEX IF NOT EXISTS "idx_risk_settings_user" ON "risk_settings" ("userId")';
+        END IF;
+      END
+      $$;
+    `);
     }
     async down(queryRunner) {
         await queryRunner.query(`DROP INDEX IF EXISTS "idx_risk_settings_user"`);
