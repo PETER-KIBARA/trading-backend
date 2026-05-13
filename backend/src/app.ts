@@ -37,6 +37,12 @@ export async function createApp(): Promise<{ app: Express; server: http.Server }
   app.use('/api/', apiLimiter);
 
   // Health check endpoint
+  // Root quick-check (helps when visiting service root in browser)
+  app.get('/', (req: Request, res: Response) => {
+    res.json({ message: 'Backend is alive and reachable' });
+  });
+
+  // Health check endpoint
   app.get('/api/health', (req: Request, res: Response) => {
     res.json({
       status: 'ok',
