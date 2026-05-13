@@ -26,34 +26,10 @@ export class AddTradingRiskBotFields1715420000000 {
       ADD COLUMN IF NOT EXISTS "enableTakeProfit" boolean NOT NULL DEFAULT true,
       ADD COLUMN IF NOT EXISTS "customRules" json NOT NULL DEFAULT '{}'::json
     `);
-        await queryRunner.query(`DO $$
-    BEGIN
-      IF to_regclass('public.bots') IS NOT NULL THEN
-        CREATE INDEX IF NOT EXISTS "idx_bots_user_status" ON "bots" ("userId", "status");
-      END IF;
-    END
-    $$;`);
-        await queryRunner.query(`DO $$
-    BEGIN
-      IF to_regclass('public.trades') IS NOT NULL THEN
-        CREATE INDEX IF NOT EXISTS "idx_trades_account_status" ON "trades" ("derivAccountId", "status");
-      END IF;
-    END
-    $$;`);
-        await queryRunner.query(`DO $$
-    BEGIN
-      IF to_regclass('public.trades') IS NOT NULL THEN
-        CREATE INDEX IF NOT EXISTS "idx_trades_bot_status" ON "trades" ("botId", "status");
-      END IF;
-    END
-    $$;`);
-        await queryRunner.query(`DO $$
-    BEGIN
-      IF to_regclass('public.risk_settings') IS NOT NULL THEN
-        CREATE INDEX IF NOT EXISTS "idx_risk_settings_user" ON "risk_settings" ("userId");
-      END IF;
-    END
-    $$;`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bots_user_status" ON "bots" ("userId", "status")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_trades_account_status" ON "trades" ("derivAccountId", "status")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_trades_bot_status" ON "trades" ("botId", "status")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_risk_settings_user" ON "risk_settings" ("userId")`);
     }
     async down(queryRunner) {
         await queryRunner.query(`DROP INDEX IF EXISTS "idx_risk_settings_user"`);
