@@ -47,12 +47,14 @@ git push -u origin main
 ```
 NODE_ENV=production
 PORT=5000
-DB_HOST=[PostgreSQL internal host]
-DB_PORT=5432
-DB_NAME=trading_platform
-DB_USER=postgres
-DB_PASSWORD=[PostgreSQL password]
-DB_SSL=true
+DATABASE_URL=[Paste the Render PostgreSQL internal connection string]
+# Or, if you prefer discrete variables:
+# DB_HOST=[PostgreSQL internal host]
+# DB_PORT=5432
+# DB_NAME=trading_platform
+# DB_USER=postgres
+# DB_PASSWORD=[PostgreSQL password]
+# DB_SSL=true
 REDIS_URL=[Redis connection URL]
 JWT_SECRET=[Generate secure key: openssl rand -hex 32]
 JWT_EXPIRY=7d

@@ -10,14 +10,24 @@ import { RiskSettings } from '../models/RiskSettings.js';
 import { StrategyConfig } from '../models/StrategyConfig.js';
 import { AnalyticsLog } from '../models/AnalyticsLog.js';
 
+const useSsl = process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production';
+
+const connectionOptions = process.env.DATABASE_URL
+  ? {
+      url: process.env.DATABASE_URL,
+    }
+  : {
+      host: process.env.DB_HOST || process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || process.env.PGPORT || '5432', 10),
+      username: process.env.DB_USER || process.env.PGUSER || 'postgres',
+      password: process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres',
+      database: process.env.DB_NAME || process.env.PGDATABASE || 'trading_platform',
+    };
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'trading_platform',
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ...connectionOptions,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
   entities: [

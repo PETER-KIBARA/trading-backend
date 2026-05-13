@@ -11,12 +11,13 @@ export const ENV = {
 
   // Database
   DB: {
-    HOST: process.env.DB_HOST || 'localhost',
-    PORT: parseInt(process.env.DB_PORT || '5432'),
-    NAME: process.env.DB_NAME || 'trading_platform',
-    USER: process.env.DB_USER || 'postgres',
-    PASSWORD: process.env.DB_PASSWORD || 'postgres',
-    SSL: process.env.DB_SSL === 'true',
+    URL: process.env.DATABASE_URL,
+    HOST: process.env.DB_HOST || process.env.PGHOST || 'localhost',
+    PORT: parseInt(process.env.DB_PORT || process.env.PGPORT || '5432'),
+    NAME: process.env.DB_NAME || process.env.PGDATABASE || 'trading_platform',
+    USER: process.env.DB_USER || process.env.PGUSER || 'postgres',
+    PASSWORD: process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres',
+    SSL: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production',
   },
 
   // JWT
