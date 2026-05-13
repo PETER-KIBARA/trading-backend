@@ -39,9 +39,17 @@ export const tradeLimiter = rateLimit({
 
 export const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
-  const allowedOrigins = process.env.CLIENT_URL?.split(',') || ['http://localhost:3000'];
+  const allowedOrigins = (process.env.CLIENT_URL?.split(',') || ['http://localhost:3000'])
+    .map((value) => value.trim())
+    .filter(Boolean);
 
-  if (allowedOrigins.includes(origin || '')) {
+  const isAllowedOrigin =
+    !!origin &&
+    (allowedOrigins.includes(origin) ||
+      /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin));
+
+  if (isAllowedOrigin) {
     res.header('Access-Control-Allow-Origin', origin);
   }
 
