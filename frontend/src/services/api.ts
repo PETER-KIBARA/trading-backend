@@ -6,7 +6,7 @@ class ApiClient {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || 'https://trading-backend-bgks.onrender.com/',
+      baseURL: import.meta.env.VITE_API_URL || 'https://trading-backend-bgks.onrender.com/api',
       timeout: 10000,
     });
 
