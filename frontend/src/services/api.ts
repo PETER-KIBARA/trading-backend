@@ -30,9 +30,8 @@ class ApiClient {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Handle unauthorized - redirect to login
           localStorage.removeItem('accessToken');
-          window.location.href = '/login';
+          this.clearToken();
         }
         return Promise.reject(error);
       },
