@@ -6,7 +6,7 @@ class WebSocketClient {
   connect(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        this.socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5000', {
+        this.socket = io(import.meta.env.VITE_WS_URL || 'https://trading-backend-bgks.onrender.com', {
           query: { userId },
           autoConnect: true,
           reconnection: true,
