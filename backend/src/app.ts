@@ -20,6 +20,9 @@ import riskRoutes from './routes/risk.js';
 
 export async function createApp(): Promise<{ app: Express; server: http.Server }> {
   const app = express();
+  // When running behind a proxy (e.g., Render), trust the first proxy
+  // so `req.ip` and rate-limiters use the client's real IP.
+  app.set('trust proxy', 1);
   const server = http.createServer(app);
 
   // Initialize WebSocket Manager
