@@ -7,4 +7,6 @@ coverage
 backend/.env
 frontend/.env
 *.log
+backend/.env.example
+frontend/.env.example
 
