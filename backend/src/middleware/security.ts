@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import cors from 'cors';
+import { ENV } from '../config/env.js';
 
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
@@ -37,29 +39,34 @@ export const tradeLimiter = rateLimit({
   message: 'Too many trades, please try again later.',
 });
 
-export const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = (process.env.CLIENT_URL?.split(',') || ['http://localhost:3000'])
-    .map((value) => value.trim())
-    .filter(Boolean);
+export const corsMiddleware = cors({
+  origin: (origin, callback) => {
+    const allowedFromEnv = (ENV.CLIENT_URL || '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean);
 
-  const isAllowedOrigin =
-    !!origin &&
-    (allowedOrigins.includes(origin) ||
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      ...allowedFromEnv,
+    ];
+
+    // Allow requests with no origin (Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Allow exact matches or common localhost patterns
+    if (
+      allowedOrigins.includes(origin) ||
       /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
-      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin));
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
 
-  if (isAllowedOrigin) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-};
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+});
