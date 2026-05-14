@@ -17,4 +17,10 @@ async function runMigrations(): Promise<void> {
   }
 }
 
-runMigrations();
+// Only run migrations if this file is executed directly, not imported
+if (import.meta.url === `file://${process.argv[1]}`) {
+  console.log('[MIGRATIONS] Running migrations directly...');
+  runMigrations();
+} else {
+  console.log('[MIGRATIONS] This module is imported, not executing migrations');
+}
