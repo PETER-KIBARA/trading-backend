@@ -231,6 +231,57 @@ export class BotService {
     }
     return updatedBot;
   }
+
+  /**
+   * Get all template bots available for users
+   */
+  async getTemplates(): Promise<Bot[]> {
+    return await this.botRepo.find({
+      where: { isTemplate: true },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  /**
+   * Activate a template bot for a user by cloning it
+   */
+  async activateTemplate(userId: string, templateId: string, derivAccountId: string, customName?: string): Promise<Bot> {
+    const template = await this.botRepo.findOne({
+      where: { id: templateId, isTemplate: true },
+    });
+
+    if (!template) {
+      throw createError(404, 'Bot template not found');
+    }
+
+    // Create new bot from template
+    const newBot = this.botRepo.create({
+      userId,
+      derivAccountId,
+      name: customName || `${template.name} - ${new Date().toLocaleDateString()}`,
+      description: template.description,
+      strategyType: template.strategyType,
+      strategyConfig: JSON.parse(JSON.stringify(template.strategyConfig)), // Deep clone config
+      marketType: template.marketType,
+      symbol: template.symbol,
+      initialStake: template.initialStake,
+      initialCapital: template.initialCapital,
+      currentCapital: template.currentCapital,
+      maxDailyLoss: template.maxDailyLoss,
+      maxConsecutiveLoss: template.maxConsecutiveLoss,
+      maxOpenTrades: template.maxOpenTrades,
+      isPaperTradingMode: template.isPaperTradingMode,
+      riskSettings: JSON.parse(JSON.stringify(template.riskSettings)), // Deep clone settings
+      status: 'inactive',
+      isTemplate: false,
+      totalTrades: 0,
+      winTrades: 0,
+      lossTrades: 0,
+      totalPnL: 0,
+    });
+
+    return await this.botRepo.save(newBot);
+  }
 }
 
 export const botService = new BotService();

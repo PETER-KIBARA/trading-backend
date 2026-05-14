@@ -50,11 +50,15 @@ export class BotExecutorService {
         throw createError(400, 'Bot is already active');
       }
 
+      if (!bot.derivAccountId || !bot.userId) {
+        throw createError(400, 'Bot configuration incomplete - missing account or user ID');
+      }
+
       // Initialize execution context
       const context: BotExecutionContext = {
         botId,
         accountId: bot.derivAccountId,
-        userId,
+        userId: bot.userId,
         lastCandles: [],
         consecutiveLosses: 0,
         dailyPnL: 0,
@@ -62,7 +66,7 @@ export class BotExecutorService {
       };
 
       // Verify account access
-      await derivAuthService.getAccountInfo(bot.derivAccountId, userId);
+      await derivAuthService.getAccountInfo(bot.derivAccountId, bot.userId);
 
       // Start bot
       bot.status = 'active';

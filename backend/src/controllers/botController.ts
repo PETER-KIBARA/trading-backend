@@ -417,3 +417,72 @@ export const deleteBot = async (req: AuthRequest, res: Response): Promise<void> 
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 };
+/**
+ * Get available template bots
+ * GET /bots/templates/available
+ */
+export const getAvailableTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const templates = await botService.getTemplates();
+
+    res.json({
+      templates: templates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        strategyType: template.strategyType,
+        strategyConfig: template.strategyConfig,
+        marketType: template.marketType,
+        initialStake: template.initialStake,
+        maxDailyLoss: template.maxDailyLoss,
+        maxConsecutiveLoss: template.maxConsecutiveLoss,
+        maxOpenTrades: template.maxOpenTrades,
+        isPaperTradingMode: template.isPaperTradingMode,
+      })),
+    });
+  } catch (error: any) {
+    logger.error(`Failed to fetch templates:`, error);
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
+};
+
+/**
+ * Activate a template bot for the user
+ * POST /bots/templates/:templateId/activate
+ * Body: { derivAccountId, name? }
+ */
+export const activateTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError(401, 'Unauthorized');
+    }
+
+    const { templateId } = req.params;
+    const { derivAccountId, name } = req.body;
+
+    if (!derivAccountId) {
+      throw createError(400, 'Deriv account ID required');
+    }
+
+    const bot = await botService.activateTemplate(req.userId, templateId, derivAccountId, name);
+
+    logger.info(`Template bot activated: ${bot.id} by user ${req.userId}`);
+
+    res.status(201).json({
+      message: 'Bot template activated successfully',
+      bot: {
+        id: bot.id,
+        name: bot.name,
+        strategyType: bot.strategyType,
+        status: bot.status,
+        initialStake: bot.initialStake,
+        currentCapital: bot.currentCapital,
+        maxDailyLoss: bot.maxDailyLoss,
+        createdAt: bot.createdAt,
+      },
+    });
+  } catch (error: any) {
+    logger.error(`Failed to activate template:`, error);
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
+};

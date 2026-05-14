@@ -13,11 +13,11 @@ export class Bot {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uuid' })
-  userId!: string;
+  @Column({ type: 'uuid', nullable: true })
+  userId?: string;
 
-  @Column({ type: 'uuid' })
-  derivAccountId!: string;
+  @Column({ type: 'uuid', nullable: true })
+  derivAccountId?: string;
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;
@@ -78,6 +78,9 @@ export class Bot {
 
   @Column({ type: 'boolean', default: false })
   isPaperTradingMode!: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  isTemplate!: boolean;
 
   @Column({ type: 'boolean', default: true })
   isAutoRestart!: boolean;

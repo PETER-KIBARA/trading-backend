@@ -18,6 +18,17 @@ router.use(authMiddleware);
 router.post('/', asyncHandler(botController.createBot));
 
 /**
+ * GET /bots/templates/available - List available template bots
+ */
+router.get('/templates/available', asyncHandler(botController.getAvailableTemplates));
+
+/**
+ * POST /bots/templates/:templateId/activate - Activate template for user
+ * Body: { derivAccountId, name? }
+ */
+router.post('/templates/:templateId/activate', asyncHandler(botController.activateTemplate));
+
+/**
  * GET /bots - List all user's bots
  */
 router.get('/', asyncHandler(botController.getBots));

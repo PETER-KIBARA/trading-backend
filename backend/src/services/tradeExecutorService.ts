@@ -41,6 +41,10 @@ export class TradeExecutorService {
         throw createError(404, 'Bot not found');
       }
 
+      if (!bot.userId) {
+        throw createError(400, 'Bot user ID missing');
+      }
+
       const riskCheck = await riskManagerService.validateTradeEntry({
         userId: bot.userId,
         botId,
