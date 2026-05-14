@@ -5,7 +5,12 @@ import { derivAuthService } from './derivAuthService.js';
 import { logger } from '../utils/logger.js';
 
 export class AccountService {
-  private accountRepo = AppDataSource.getRepository(DerivAccount);
+  private getAccountRepo() {
+    if (!AppDataSource.isInitialized) {
+      throw new Error('Database not initialized');
+    }
+    return AppDataSource.getRepository(DerivAccount);
+  }
 
   /**
    * Add a Deriv account using token (delegates to derivAuthService)
@@ -21,7 +26,8 @@ export class AccountService {
   }
 
   async getAccountByIdAndUser(accountId: string, userId: string): Promise<DerivAccount> {
-    const account = await this.accountRepo.findOne({
+    const accountRepo = this.getAccountRepo();
+    const account = await accountRepo.findOne({
       where: { id: accountId, userId },
     });
 
@@ -46,7 +52,8 @@ export class AccountService {
 
   async syncAccountBalance(accountId: string): Promise<number> {
     try {
-      const account = await this.accountRepo.findOne({ where: { id: accountId } });
+      const accountRepo = this.getAccountRepo();
+      const account = await accountRepo.findOne({ where: { id: accountId } });
       if (!account) {
         throw createError(404, 'Account not found');
       }
@@ -55,14 +62,15 @@ export class AccountService {
       account.balance = balanceData.balance;
       account.lastSyncedAt = new Date();
       account.connectionStatus = 'connected';
-      await this.accountRepo.save(account);
+      await accountRepo.save(account);
 
       return account.balance;
     } catch (error: any) {
-      const account = await this.accountRepo.findOne({ where: { id: accountId } });
+      const accountRepo = this.getAccountRepo();
+      const account = await accountRepo.findOne({ where: { id: accountId } });
       if (account) {
         account.connectionStatus = 'error';
-        await this.accountRepo.save(account);
+        await accountRepo.save(account);
       }
       logger.error(`Failed to sync balance for account ${accountId}:`, error);
       throw error;
@@ -77,13 +85,14 @@ export class AccountService {
     accountId: string,
     settings: Record<string, any>,
   ): Promise<DerivAccount> {
-    const account = await this.accountRepo.findOne({ where: { id: accountId } });
+    const accountRepo = this.getAccountRepo();
+    const account = await accountRepo.findOne({ where: { id: accountId } });
     if (!account) {
       throw createError(404, 'Account not found');
     }
 
     account.settings = { ...account.settings, ...settings };
-    return await this.accountRepo.save(account);
+    return await accountRepo.save(account);
   }
 
   async deleteAccount(accountId: string, userId: string): Promise<void> {
