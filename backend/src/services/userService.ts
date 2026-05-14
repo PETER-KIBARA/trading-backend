@@ -8,6 +8,7 @@ import { createError } from '../utils/errors.js';
 export class UserService {
   private getUserRepo() {
     console.log('[USER_SERVICE] getUserRepo() called');
+    console.log('[USER_SERVICE] AppDataSource ID:', (AppDataSource as any).__ID);
     console.log('[USER_SERVICE] AppDataSource.isInitialized:', AppDataSource.isInitialized);
     
     if (!AppDataSource.isInitialized) {
@@ -16,6 +17,7 @@ export class UserService {
       console.error('[USER_SERVICE]   1. Was not called');
       console.error('[USER_SERVICE]   2. Failed silently');
       console.error('[USER_SERVICE]   3. Is a different module instance (ESM duplication)');
+      console.error('[USER_SERVICE] AppDataSource instance ID:', (AppDataSource as any).__ID);
       throw new Error('Database not initialized');
     }
     console.log('[USER_SERVICE] Returning repository');

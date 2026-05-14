@@ -83,6 +83,7 @@ export async function createApp(): Promise<{ app: Express; server: http.Server }
 export async function initializeDatabase(): Promise<void> {
   try {
     console.log('[INIT] Starting database initialization...');
+    console.log('[INIT] AppDataSource ID:', (AppDataSource as any).__ID);
     console.log('[INIT] AppDataSource.isInitialized:', AppDataSource.isInitialized);
     
     if (!AppDataSource.isInitialized) {
@@ -95,6 +96,7 @@ export async function initializeDatabase(): Promise<void> {
       console.log('[INIT] Calling AppDataSource.initialize()...');
       await AppDataSource.initialize();
       console.log('[INIT] AppDataSource.initialize() completed');
+      console.log('[INIT] AppDataSource ID after init:', (AppDataSource as any).__ID);
       console.log('[INIT] AppDataSource.isInitialized is now:', AppDataSource.isInitialized);
       
       logger.info('Database connection established and initialized');
