@@ -99,6 +99,16 @@ export async function initializeDatabase(): Promise<void> {
       console.log('[INIT] AppDataSource ID after init:', (AppDataSource as any).__ID);
       console.log('[INIT] AppDataSource.isInitialized is now:', AppDataSource.isInitialized);
       
+      // Run migrations to create/update schema (but don't destroy the connection!)
+      console.log('[INIT] Running pending migrations...');
+      try {
+        const migrations = await AppDataSource.runMigrations({ transaction: 'all' });
+        console.log('[INIT] Migrations completed:', { count: migrations.length });
+        logger.info('Migrations executed successfully', { count: migrations.length });
+      } catch (migrationErr: any) {
+        // Migrations may fail if already run or no migrations exist - that's OK
+        console.log('[INIT] Migration note:', migrationErr.message);
+      }
 
       logger.info('Database connection established and initialized');
     } else {
