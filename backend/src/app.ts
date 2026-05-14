@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import http from 'http';
 import { AppDataSource } from './config/database.js';
+import { User } from './models/User.js';
 import { ENV } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -82,11 +83,35 @@ export async function createApp(): Promise<{ app: Express; server: http.Server }
 export async function initializeDatabase(): Promise<void> {
   try {
     if (!AppDataSource.isInitialized) {
+      logger.info('Initializing database connection...', {
+        type: 'postgres',
+        host: process.env.DB_HOST || process.env.PGHOST || 'localhost',
+        hasUrl: !!process.env.DATABASE_URL,
+      });
+
       await AppDataSource.initialize();
-      logger.info('Database connection established');
+      logger.info('Database connection initialized');
+
+      // Verify connection is actually working
+      try {
+        const connection = AppDataSource.getRepository(User);
+        const count = await connection.count();
+        logger.info('Database connection verified', { userCount: count });
+      } catch (queryError: any) {
+        logger.error('Database query verification failed', {
+          message: queryError.message,
+          code: queryError.code,
+        });
+        throw new Error(`Database connection test query failed: ${queryError.message}`);
+      }
     }
-  } catch (error) {
-    logger.error('Database connection error', error);
+  } catch (error: any) {
+    logger.error('Database connection error', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
+    console.error('Database connection failed:', error);
     throw error;
   }
 }

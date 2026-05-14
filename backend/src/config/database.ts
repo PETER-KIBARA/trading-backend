@@ -44,4 +44,5 @@ export const AppDataSource = new DataSource({
   ],
   migrations: ['dist/migrations/**/*.js'],
   subscribers: [],
-});
+  poolSize: 10,
+} as any);
