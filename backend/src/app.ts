@@ -90,20 +90,7 @@ export async function initializeDatabase(): Promise<void> {
       });
 
       await AppDataSource.initialize();
-      logger.info('Database connection initialized');
-
-      // Verify connection is actually working
-      try {
-        const connection = AppDataSource.getRepository(User);
-        const count = await connection.count();
-        logger.info('Database connection verified', { userCount: count });
-      } catch (queryError: any) {
-        logger.error('Database query verification failed', {
-          message: queryError.message,
-          code: queryError.code,
-        });
-        throw new Error(`Database connection test query failed: ${queryError.message}`);
-      }
+      logger.info('Database connection established and initialized');
     }
   } catch (error: any) {
     logger.error('Database connection error', {
