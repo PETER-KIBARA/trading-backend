@@ -99,6 +99,16 @@ export async function initializeDatabase(): Promise<void> {
       console.log('[INIT] AppDataSource ID after init:', (AppDataSource as any).__ID);
       console.log('[INIT] AppDataSource.isInitialized is now:', AppDataSource.isInitialized);
       
+      // Verify connection is actually working
+      console.log('[INIT] Verifying database connection with test query...');
+      try {
+        const result = await AppDataSource.query('SELECT 1');
+        console.log('[INIT] Connection verification successful:', result);
+      } catch (queryErr: any) {
+        console.error('[INIT] Connection verification FAILED:', queryErr.message);
+        throw new Error(`Database connection verification failed: ${queryErr.message}`);
+      }
+      
       logger.info('Database connection established and initialized');
     } else {
       console.log('[INIT] Database already initialized, skipping...');

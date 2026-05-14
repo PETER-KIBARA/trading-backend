@@ -50,27 +50,40 @@ export const AppDataSource = new DataSource({
   migrations: ['dist/migrations/**/*.js'],
   subscribers: [],
   poolSize: 10,
+  // Connection pool settings
+  maxQueryExecutionTime: 30000, // 30 seconds
+  // Add connection error handler
+  extra: {
+    // Keep alive settings for Render
+    keepAliveInitialDelaySeconds: 10,
+    connectionTimeoutMillis: 10000,
+    idleInTransactionSessionTimeout: 30000,
+    statement_timeout: 30000,
+  },
 } as any);
 
-// Create a unique identifier for this instance
-const DS_ID = Math.random().toString(36).substr(2, 9);
-(AppDataSource as any).__ID = DS_ID;
+// Listen for connection errors to help debug pool issues
+(AppDataSource as any).on?.('error', (err: any) => {
+  console.error('[DATABASE] Connection pool error:', err);
+});
+
+// Add listener for when connection is lost
+if ((AppDataSource as any).manager) {
+  (AppDataSource as any).manager.connection?.on?.('error', (err: any) => {
+    console.error('[DATABASE] Connection error:', err);
+  });
+}
 
 // Track DataSource instance creation
 (globalThis as any).__app_data_sources = (globalThis as any).__app_data_sources || [];
 (globalThis as any).__app_data_sources.push({
-  id: DS_ID,
+  id: (globalThis as any).__app_data_sources.length + 1,
   timestamp: new Date().toISOString(),
   instance: AppDataSource,
 });
 
-console.log(`[DATABASE] NEW DataSource instance created: ID=${DS_ID}`);
-console.log(`[DATABASE] Total DataSource instances in global scope: ${(globalThis as any).__app_data_sources.length}`);
-
+console.log('[DATABASE DATASOURCE] Created instance #' + (globalThis as any).__app_data_sources.length);
 if ((globalThis as any).__app_data_sources.length > 1) {
-  console.warn('[DATABASE] ⚠️  WARNING: Multiple DataSource instances detected!');
-  console.warn('[DATABASE] This indicates ESM module duplication');
-  console.warn('[DATABASE] Instance IDs:', (globalThis as any).__app_data_sources.map((ds: any) => ds.id));
-  console.warn('[DATABASE] Stack trace where this instance was created:');
-  console.warn(new Error().stack);
+  console.warn('[DATABASE DATASOURCE] WARNING: Multiple DataSource instances detected!');
+  console.warn('[DATABASE DATASOURCE] Instance history:', (globalThis as any).__app_data_sources.map((ds: any) => ({ id: ds.id, timestamp: ds.timestamp })));
 }
