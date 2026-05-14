@@ -49,6 +49,8 @@ export const corsMiddleware = cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
       ...allowedFromEnv,
     ];
 
@@ -59,11 +61,13 @@ export const corsMiddleware = cors({
     if (
       allowedOrigins.includes(origin) ||
       /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
-      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+      /^https:\/\/[a-z0-9-]+\.onrender\.com$/.test(origin)
     ) {
       return callback(null, true);
     }
 
+    console.warn(`CORS: Rejected origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,

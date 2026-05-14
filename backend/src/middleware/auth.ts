@@ -3,6 +3,7 @@ import { authService } from '../utils/auth.js';
 import { createError } from '../utils/errors.js';
 import { AppDataSource } from '../config/database.js';
 import { User } from '../models/User.js';
+import { logger } from '../utils/logger.js';
 
 export interface AuthRequest extends Request {
   user?: User;
@@ -16,14 +17,20 @@ export const authMiddleware = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
 
     if (!token) {
+      logger.warn('Auth: No token provided', { 
+        path: req.path,
+        authHeader: authHeader ? 'present' : 'missing'
+      });
       throw createError(401, 'No token provided');
     }
 
     const payload = authService.verifyAccessToken(token);
     if (!payload) {
+      logger.warn('Auth: Token verification failed', { path: req.path });
       throw createError(401, 'Invalid or expired token');
     }
 
@@ -31,6 +38,7 @@ export const authMiddleware = async (
     const user = await userRepo.findOne({ where: { id: payload.userId } });
 
     if (!user) {
+      logger.warn('Auth: User not found', { userId: payload.userId });
       throw createError(401, 'User not found');
     }
 
@@ -39,6 +47,10 @@ export const authMiddleware = async (
     req.token = token;
     next();
   } catch (error: any) {
+    logger.error('Auth middleware error', { 
+      message: error.message,
+      path: req.path
+    });
     res.status(error.statusCode || 401).json({
       error: error.message || 'Unauthorized',
     });
