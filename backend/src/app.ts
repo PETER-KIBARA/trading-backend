@@ -82,6 +82,9 @@ export async function createApp(): Promise<{ app: Express; server: http.Server }
 
 export async function initializeDatabase(): Promise<void> {
   try {
+    console.log('[INIT] Starting database initialization...');
+    console.log('[INIT] AppDataSource.isInitialized:', AppDataSource.isInitialized);
+    
     if (!AppDataSource.isInitialized) {
       logger.info('Initializing database connection...', {
         type: 'postgres',
@@ -89,14 +92,22 @@ export async function initializeDatabase(): Promise<void> {
         hasUrl: !!process.env.DATABASE_URL,
       });
 
+      console.log('[INIT] Calling AppDataSource.initialize()...');
       await AppDataSource.initialize();
+      console.log('[INIT] AppDataSource.initialize() completed');
+      console.log('[INIT] AppDataSource.isInitialized is now:', AppDataSource.isInitialized);
+      
       logger.info('Database connection established and initialized');
+    } else {
+      console.log('[INIT] Database already initialized, skipping...');
     }
   } catch (error: any) {
+    console.error('[INIT] CRITICAL ERROR during database initialization:', error);
     logger.error('Database connection error', {
       message: error.message,
       code: error.code,
       detail: error.detail,
+      stack: error.stack,
     });
     console.error('Database connection failed:', error);
     throw error;
