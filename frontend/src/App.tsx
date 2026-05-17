@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import BotsPage from './pages/BotsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import DerivConnectPage from './pages/DerivConnectPage';
 
 // Components
 import Layout from './components/Layout';
@@ -27,6 +28,7 @@ function App(): JSX.Element {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/connect-deriv" element={<DerivConnectPage />} />
 
         {/* Protected Routes */}
         <Route

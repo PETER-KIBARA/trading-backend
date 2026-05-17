@@ -74,6 +74,10 @@ class ApiClient {
   }
 
   // Account endpoints
+  connectDerivAccount(token: string, accountName: string) {
+    return this.instance.post('/accounts', { token, accountName });
+  }
+
   addAccount(accountId: string, accountName: string, token: string, accountType: string) {
     return this.instance.post('/accounts', { accountId, accountName, token, accountType });
   }
@@ -96,6 +100,14 @@ class ApiClient {
 
   syncBalance(accountId: string) {
     return this.instance.post(`/accounts/${accountId}/sync-balance`);
+  }
+
+  setDefaultAccount(accountId: string) {
+    return this.instance.post(`/accounts/${accountId}/set-default`);
+  }
+
+  deleteAccount(accountId: string) {
+    return this.instance.delete(`/accounts/${accountId}`);
   }
 
   // Trade endpoints
@@ -159,6 +171,28 @@ class ApiClient {
 
   getRiskSettings() {
     return this.instance.get('/risk/settings');
+  }
+
+  updateRiskSettings(data: any) {
+    return this.instance.put('/risk/settings', data);
+  }
+
+  // Analytics endpoints
+  getAnalytics(startDate?: string, endDate?: string) {
+    return this.instance.get('/analytics', { params: { startDate, endDate } });
+  }
+
+  getDashboardMetrics() {
+    return this.instance.get('/analytics/dashboard');
+  }
+
+  // Settings endpoints
+  getUserPreferences() {
+    return this.instance.get('/auth/profile');
+  }
+
+  updateUserPreferences(preferences: any) {
+    return this.instance.put('/auth/profile', { preferences });
   }
 }
 
