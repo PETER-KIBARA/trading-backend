@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as accountController from '../controllers/accountController.js';
+import * as oauthController from '../controllers/oauthController.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
@@ -8,7 +9,11 @@ const router = Router();
 // All routes require authentication
 router.use(authMiddleware);
 
-// Account management
+// OAuth account connection
+router.post('/oauth/connect', asyncHandler(oauthController.connectOAuthAccounts));
+router.post('/oauth/disconnect', asyncHandler(oauthController.disconnectOAuthAccounts));
+
+// Legacy account management
 router.post('/', asyncHandler(accountController.addAccount));
 router.get('/', asyncHandler(accountController.getAccounts));
 router.get('/default', asyncHandler(accountController.getDefaultAccount));

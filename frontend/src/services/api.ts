@@ -78,6 +78,10 @@ class ApiClient {
     return this.instance.post('/accounts', { token, accountName });
   }
 
+  connectDerivOAuthAccounts(accounts: Array<{ token: string; accountId: string; currency: string }>) {
+    return this.instance.post('/accounts/oauth/connect', { accounts });
+  }
+
   addAccount(accountId: string, accountName: string, token: string, accountType: string) {
     return this.instance.post('/accounts', { accountId, accountName, token, accountType });
   }

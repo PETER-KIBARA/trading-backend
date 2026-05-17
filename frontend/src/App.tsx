@@ -9,6 +9,7 @@ import BotsPage from './pages/BotsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import DerivConnectPage from './pages/DerivConnectPage';
+import OAuthRedirectPage from './pages/OAuthRedirectPage';
 
 // Components
 import Layout from './components/Layout';
@@ -29,6 +30,7 @@ function App(): JSX.Element {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/connect-deriv" element={<DerivConnectPage />} />
+        <Route path="/oauth-redirect" element={<OAuthRedirectPage />} />
 
         {/* Protected Routes */}
         <Route
