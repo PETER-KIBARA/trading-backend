@@ -58,7 +58,13 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    loadProfile();
+    // Only load profile if token exists in localStorage
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      loadProfile();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   return {
