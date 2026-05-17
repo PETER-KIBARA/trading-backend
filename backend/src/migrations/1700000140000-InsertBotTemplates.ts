@@ -6,6 +6,27 @@ export class InsertBotTemplates1700000140000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     console.log('[MIGRATION] Inserting bot templates...');
 
+    // First ensure userId and derivAccountId are nullable
+    try {
+      await queryRunner.query(`
+        ALTER TABLE "bots"
+        ALTER COLUMN "userId" DROP NOT NULL
+      `);
+      console.log('[MIGRATION] Made userId nullable');
+    } catch (e) {
+      console.log('[MIGRATION] userId is already nullable or alter failed (ok)');
+    }
+
+    try {
+      await queryRunner.query(`
+        ALTER TABLE "bots"
+        ALTER COLUMN "derivAccountId" DROP NOT NULL
+      `);
+      console.log('[MIGRATION] Made derivAccountId nullable');
+    } catch (e) {
+      console.log('[MIGRATION] derivAccountId is already nullable or alter failed (ok)');
+    }
+
     // Check if templates already exist
     const existingTemplates = await queryRunner.query(`
       SELECT COUNT(*) as count FROM "bots" WHERE "isTemplate" = true
