@@ -51,6 +51,7 @@ export const corsMiddleware = cors({
       'http://127.0.0.1:3000',
       'http://localhost:5173',
       'http://127.0.0.1:5173',
+      'https://setrfx.web.app',
       ...allowedFromEnv,
     ];
 
@@ -62,7 +63,9 @@ export const corsMiddleware = cors({
       allowedOrigins.includes(origin) ||
       /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
       /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
-      /^https:\/\/[a-z0-9-]+\.onrender\.com$/.test(origin)
+      /^https:\/\/[a-z0-9-]+\.onrender\.com$/.test(origin) ||
+      /^https:\/\/[a-z0-9-]+\.web\.app$/.test(origin) ||
+      /^https:\/\/[a-z0-9-]+\.firebaseapp\.com$/.test(origin)
     ) {
       return callback(null, true);
     }
