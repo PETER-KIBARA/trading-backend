@@ -90,9 +90,9 @@ export const getBots = async (req: AuthRequest, res: Response): Promise<void> =>
         currentCapital: bot.currentCapital,
         totalPnL: bot.totalPnL,
         totalTrades: bot.totalTrades,
-        winTrades: bot.winTrades,
-        lossTrades: bot.lossTrades,
-        winRate: bot.totalTrades > 0 ? ((bot.winTrades / bot.totalTrades) * 100).toFixed(2) : 0,
+        winTrades: bot.winTrades ?? 0,
+        lossTrades: bot.lossTrades ?? 0,
+        winRate: bot.totalTrades > 0 ? (((bot.winTrades ?? 0) / bot.totalTrades) * 100).toFixed(2) : 0,
         createdAt: bot.createdAt,
       })),
     });
@@ -130,9 +130,9 @@ export const getBotById = async (req: AuthRequest, res: Response): Promise<void>
         maxOpenTrades: bot.maxOpenTrades,
         totalPnL: bot.totalPnL,
         totalTrades: bot.totalTrades,
-        winTrades: bot.winTrades,
-        lossTrades: bot.lossTrades,
-        winRate: bot.totalTrades > 0 ? ((bot.winTrades / bot.totalTrades) * 100).toFixed(2) : 0,
+        winTrades: bot.winTrades ?? 0,
+        lossTrades: bot.lossTrades ?? 0,
+        winRate: bot.totalTrades > 0 ? (((bot.winTrades ?? 0) / bot.totalTrades) * 100).toFixed(2) : 0,
         startTime: bot.startTime,
         endTime: bot.endTime,
         createdAt: bot.createdAt,
@@ -366,20 +366,23 @@ export const getBotStats = async (req: AuthRequest, res: Response): Promise<void
     // Update stats from tradeExecutorService
     const updatedBot = await botService.updateBotStats(botId);
 
+    const lossTrades = updatedBot.lossTrades ?? 0;
+    const totalPnL = updatedBot.totalPnL ?? 0;
+    const initialCapital = updatedBot.initialCapital ?? 0;
     const profitFactor =
-      bot.lossTrades > 0 ? (bot.totalPnL > 0 ? Math.abs(bot.totalPnL) / (bot.lossTrades * 50) : 0) : 0;
+      lossTrades > 0 ? (totalPnL > 0 ? Math.abs(totalPnL) / (lossTrades * 50) : 0) : 0;
 
     res.json({
       stats: {
         botId: updatedBot.id,
         totalTrades: updatedBot.totalTrades,
-        winTrades: updatedBot.winTrades,
-        lossTrades: updatedBot.lossTrades,
-        winRate: updatedBot.totalTrades > 0 ? ((updatedBot.winTrades / updatedBot.totalTrades) * 100).toFixed(2) : 0,
-        totalPnL: updatedBot.totalPnL,
-        initialCapital: updatedBot.initialCapital,
+        winTrades: updatedBot.winTrades ?? 0,
+        lossTrades: lossTrades,
+        winRate: updatedBot.totalTrades > 0 ? (((updatedBot.winTrades ?? 0) / updatedBot.totalTrades) * 100).toFixed(2) : 0,
+        totalPnL: totalPnL,
+        initialCapital: initialCapital,
         currentCapital: updatedBot.currentCapital,
-        roi: updatedBot.initialCapital > 0 ? ((updatedBot.totalPnL / updatedBot.initialCapital) * 100).toFixed(2) : 0,
+        roi: initialCapital > 0 ? ((totalPnL / initialCapital) * 100).toFixed(2) : 0,
         profitFactor: profitFactor.toFixed(2),
         status: updatedBot.status,
         uptime:
