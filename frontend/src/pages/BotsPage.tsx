@@ -1,19 +1,54 @@
 import React from 'react';
-import { Activity, BarChart3, Bot, PlayCircle, Shield, Sparkles, Zap } from 'lucide-react';
-
-const templates = [
-  { name: 'RSI Pulse', strategy: 'RSI', badge: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200' },
-  { name: 'MACD Flow', strategy: 'MACD', badge: 'border-violet-400/20 bg-violet-400/10 text-violet-200' },
-  { name: 'Trend Guard', strategy: 'MA Crossover', badge: 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200' },
-];
-
-const activeBots = [
-  { name: 'Volatility Edge', status: 'active', pnl: '+$1,284.20', trades: 38 },
-  { name: 'Session Breakout', status: 'paused', pnl: '+$332.10', trades: 12 },
-  { name: 'Mean Reversion', status: 'inactive', pnl: '-$76.50', trades: 9 },
-];
+import { Activity, BarChart3, Bot, PlayCircle, Shield, Sparkles, Zap, AlertCircle } from 'lucide-react';
+import { useBots } from '../hooks/useBots';
 
 export const BotsPage: React.FC = () => {
+  const { bots, templates, activeBotCount, monthlyPnL, riskEvents, loading, error } = useBots();
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(value);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="mini-pill w-32 animate-pulse">&nbsp;</div>
+          <div className="mt-4 h-10 w-72 rounded-2xl bg-white/10" />
+          <div className="mt-3 h-5 w-96 rounded-2xl bg-white/5" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="stat-card h-24 animate-pulse bg-white/5" />
+          ))}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="surface h-80 animate-pulse bg-white/5" />
+          <div className="surface h-80 animate-pulse bg-white/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="surface border border-red-500/20 bg-red-500/10 p-5">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 text-red-300" size={20} />
+          <div>
+            <h1 className="text-xl font-semibold text-white">Failed to load bots</h1>
+            <p className="mt-1 text-slate-300">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="surface-strong p-6 sm:p-8">
@@ -40,9 +75,9 @@ export const BotsPage: React.FC = () => {
 
       <section className="grid gap-4 md:grid-cols-3">
         {[
-          { label: 'Active bots', value: '12', icon: Activity, tone: 'text-emerald-300' },
-          { label: 'Monthly P/L', value: '+$14.2k', icon: BarChart3, tone: 'text-cyan-300' },
-          { label: 'Risk events', value: '3', icon: Shield, tone: 'text-fuchsia-300' },
+          { label: 'Active bots', value: activeBotCount.toString(), icon: Activity, tone: 'text-emerald-300' },
+          { label: 'Monthly P/L', value: formatCurrency(monthlyPnL), icon: BarChart3, tone: 'text-cyan-300' },
+          { label: 'Risk events', value: riskEvents.toString(), icon: Shield, tone: 'text-fuchsia-300' },
         ].map(({ label, value, icon: Icon, tone }) => (
           <div key={label} className="stat-card">
             <div className="flex items-start justify-between gap-3">
@@ -83,23 +118,27 @@ export const BotsPage: React.FC = () => {
           <h2 className="text-xl font-semibold text-white">Active bots</h2>
           <p className="mt-1 text-sm text-slate-400">Current performance snapshot of live automation.</p>
           <div className="mt-5 space-y-3">
-            {activeBots.map((bot) => (
-              <div key={bot.name} className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-white">{bot.name}</p>
-                    <p className="text-sm text-slate-400">{bot.trades} trades</p>
+            {bots.length === 0 ? (
+              <p className="text-center text-slate-400 py-4">No bots created yet. Start by creating one from the templates.</p>
+            ) : (
+              bots.map((bot) => (
+                <div key={bot.id} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-white">{bot.name}</p>
+                      <p className="text-sm text-slate-400">{bot.trades} trades</p>
+                    </div>
+                    <span className={`badge ${bot.status === 'active' ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200' : bot.status === 'paused' ? 'border-amber-400/20 bg-amber-400/10 text-amber-200' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                      {bot.status}
+                    </span>
                   </div>
-                  <span className={`badge ${bot.status === 'active' ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200' : bot.status === 'paused' ? 'border-amber-400/20 bg-amber-400/10 text-amber-200' : 'border-white/10 bg-white/5 text-slate-200'}`}>
-                    {bot.status}
-                  </span>
+                  <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+                    <span>Realized P/L</span>
+                    <span className={bot.pnl >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{formatCurrency(bot.pnl)}</span>
+                  </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                  <span>Realized P/L</span>
-                  <span className={bot.pnl.startsWith('+') ? 'text-emerald-300' : 'text-rose-300'}>{bot.pnl}</span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

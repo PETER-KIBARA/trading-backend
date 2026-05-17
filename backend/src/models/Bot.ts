@@ -43,11 +43,11 @@ export class Bot {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   initialStake!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  initialCapital!: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, nullable: true })
+  initialCapital?: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  currentCapital!: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, nullable: true })
+  currentCapital?: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   maxDailyLoss!: number;
@@ -55,8 +55,8 @@ export class Bot {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   maxConsecutiveLoss!: number;
 
-  @Column({ type: 'integer', default: 5 })
-  maxOpenTrades!: number;
+  @Column({ type: 'integer', default: 5, nullable: true })
+  maxOpenTrades?: number;
 
   @Column({ type: 'integer', default: 0 })
   consecutiveLosses!: number;
@@ -64,14 +64,14 @@ export class Bot {
   @Column({ type: 'integer', default: 0 })
   totalTrades!: number;
 
-  @Column({ type: 'integer', default: 0 })
-  winTrades!: number;
+  @Column({ type: 'integer', default: 0, nullable: true })
+  winTrades?: number;
 
-  @Column({ type: 'integer', default: 0 })
-  lossTrades!: number;
+  @Column({ type: 'integer', default: 0, nullable: true })
+  lossTrades?: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
-  totalPnL!: number;
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, nullable: true })
+  totalPnL?: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   winRate!: number;
@@ -79,8 +79,8 @@ export class Bot {
   @Column({ type: 'boolean', default: false })
   isPaperTradingMode!: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isTemplate!: boolean;
+  @Column({ type: 'boolean', default: false, nullable: true })
+  isTemplate?: boolean;
 
   @Column({ type: 'boolean', default: true })
   isAutoRestart!: boolean;

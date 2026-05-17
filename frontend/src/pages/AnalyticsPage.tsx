@@ -1,21 +1,47 @@
 import React from 'react';
-import { BarChart3, CalendarDays, Clock3, LineChart, PieChart, TrendingUp } from 'lucide-react';
-
-const metrics = [
-  { label: 'Daily win rate', value: '68.4%', delta: '+4.1%', badge: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200' },
-  { label: 'Avg. trade return', value: '+$18.42', delta: '+2.7%', badge: 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200' },
-  { label: 'Risk utilization', value: '41%', delta: '-8%', badge: 'border-violet-400/20 bg-violet-400/10 text-violet-200' },
-  { label: 'Sharpe ratio', value: '1.92', delta: '+0.3', badge: 'border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-200' },
-];
-
-const timeline = [
-  { time: '09:15', event: 'Momentum bot opened 3 trades', impact: '+$142.20' },
-  { time: '11:40', event: 'Risk cap tightened automatically', impact: 'Guardrail' },
-  { time: '14:05', event: 'Closed volatility session', impact: '+$88.10' },
-  { time: '18:30', event: 'Daily summary generated', impact: 'Complete' },
-];
+import { BarChart3, CalendarDays, Clock3, LineChart, PieChart, TrendingUp, AlertCircle } from 'lucide-react';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 export const AnalyticsPage: React.FC = () => {
+  const { metrics, timeline, loading, error } = useAnalytics();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="mini-pill w-32 animate-pulse">&nbsp;</div>
+          <div className="mt-4 h-10 w-72 rounded-2xl bg-white/10" />
+          <div className="mt-3 h-5 w-96 rounded-2xl bg-white/5" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="stat-card h-32 animate-pulse bg-white/5" />
+          ))}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="surface h-96 animate-pulse bg-white/5" />
+          <div className="surface h-96 animate-pulse bg-white/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="surface border border-red-500/20 bg-red-500/10 p-5">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 text-red-300" size={20} />
+          <div>
+            <h1 className="text-xl font-semibold text-white">Failed to load analytics</h1>
+            <p className="mt-1 text-slate-300">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="surface-strong p-6 sm:p-8">
@@ -91,17 +117,21 @@ export const AnalyticsPage: React.FC = () => {
           </div>
 
           <div className="mt-5 space-y-3">
-            {timeline.map((item) => (
-              <div key={item.time} className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{item.time}</p>
-                    <p className="mt-2 text-sm font-semibold text-white">{item.event}</p>
+            {timeline.length === 0 ? (
+              <p className="text-center text-slate-400 py-4">No timeline events yet. Start trading to see activity.</p>
+            ) : (
+              timeline.map((item) => (
+                <div key={item.time} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{item.time}</p>
+                      <p className="mt-2 text-sm font-semibold text-white">{item.event}</p>
+                    </div>
+                    <span className="badge border-white/10 bg-white/5 text-slate-200">{item.impact}</span>
                   </div>
-                  <span className="badge border-white/10 bg-white/5 text-slate-200">{item.impact}</span>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
