@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   AlertCircle,
@@ -12,6 +13,7 @@ import {
   Target,
   TrendingUp,
   Zap,
+  ArrowRight,
 } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -107,14 +109,68 @@ export const DashboardPage: React.FC = () => {
 
   if (!snapshot?.defaultAccount) {
     return (
-      <div className="surface border border-amber-400/20 bg-amber-400/10 p-5">
-        <div className="flex items-start gap-3">
-          <CircleDollarSign className="mt-0.5 text-amber-200" size={20} />
-          <div>
-            <h1 className="text-xl font-semibold text-white">No trading account connected</h1>
-            <p className="mt-1 text-sm text-amber-100/90">Add a Deriv account in Settings to unlock the dashboard experience.</p>
+      <div className="space-y-6">
+        <section className="surface-strong p-6 sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="mini-pill">
+                <CircleDollarSign size={14} /> Welcome to TradeAI
+              </div>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white">Let's get started</h1>
+              <p className="section-subtitle">
+                Connect your Deriv account to start automating trades and monitoring your portfolio.
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="surface border border-amber-400/20 bg-amber-400/10 p-6">
+          <div className="flex items-start gap-4">
+            <CircleDollarSign className="mt-0.5 text-amber-200 flex-shrink-0" size={24} />
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-amber-50">No trading account connected</h2>
+              <p className="mt-2 text-sm text-amber-100/90 mb-4">
+                Add a Deriv account to unlock the dashboard experience, including real-time balance sync, bot management, and trading analytics.
+              </p>
+              <Link
+                to="/connect-deriv"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold transition"
+              >
+                <CircleDollarSign size={16} />
+                Connect Deriv Account
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2">
+          <div className="surface p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <Sparkles size={18} className="text-fuchsia-300" />
+              Key Features
+            </h3>
+            <ul className="space-y-2 text-sm text-slate-300">
+              <li>✓ Real-time balance synchronization</li>
+              <li>✓ Advanced trading bots</li>
+              <li>✓ Risk management tools</li>
+              <li>✓ Performance analytics</li>
+            </ul>
+          </div>
+
+          <div className="surface p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <ShieldCheck size={18} className="text-cyan-300" />
+              Security First
+            </h3>
+            <ul className="space-y-2 text-sm text-slate-300">
+              <li>✓ Encrypted token storage</li>
+              <li>✓ OAuth 2.0 authentication</li>
+              <li>✓ No email/password stored</li>
+              <li>✓ Trade execution only</li>
+            </ul>
+          </div>
+        </section>
       </div>
     );
   }
