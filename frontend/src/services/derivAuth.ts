@@ -21,9 +21,26 @@ export function buildDerivAuthorizeUrl(): string {
   return `${DERIV_OAUTH_AUTHORIZE_URL}?app_id=${encodeURIComponent(DERIV_APP_ID)}&redirect_uri=${redirectUri}`;
 }
 
-/** Parses `acct1` / `token1`, `acct2` / `token2`, … from the OAuth callback query string. */
-export function parseDerivOAuthCallback(search: string): DerivOAuthAccount[] {
-  const params = new URLSearchParams(search);
+/** Merges query-string and hash-fragment OAuth params (Deriv may use either). */
+export function mergeOAuthCallbackParams(search: string, hash: string): URLSearchParams {
+  const params = new URLSearchParams(
+    search.startsWith('?') ? search.slice(1) : search,
+  );
+
+  const rawHash = hash.startsWith('#') ? hash.slice(1) : hash;
+  if (rawHash) {
+    const hashParams = new URLSearchParams(rawHash);
+    hashParams.forEach((value, key) => {
+      params.set(key, value);
+    });
+  }
+
+  return params;
+}
+
+/** Parses `acct1` / `token1`, `acct2` / `token2`, … from the OAuth callback URL. */
+export function parseDerivOAuthCallback(search: string, hash = ''): DerivOAuthAccount[] {
+  const params = mergeOAuthCallbackParams(search, hash);
   const accounts: DerivOAuthAccount[] = [];
   let index = 1;
 
@@ -38,6 +55,11 @@ export function parseDerivOAuthCallback(search: string): DerivOAuthAccount[] {
   }
 
   return accounts;
+}
+
+export function getOAuthCallbackError(search: string, hash = ''): string | null {
+  const params = mergeOAuthCallbackParams(search, hash);
+  return params.get('error') || params.get('error_description');
 }
 
 export function saveDerivOAuthAccounts(accounts: DerivOAuthAccount[]): void {

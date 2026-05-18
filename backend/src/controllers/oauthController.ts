@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { accountService } from '../services/accountService.js';
@@ -39,7 +40,7 @@ export const connectOAuthAccounts = async (req: AuthRequest, res: Response): Pro
       try {
         // Generate unique email based on first account ID
         const tempEmail = `oauth-${accounts[0].accountId}-${Date.now()}@trading-platform.local`;
-        const tempPassword = require('crypto').randomBytes(16).toString('hex');
+        const tempPassword = crypto.randomBytes(16).toString('hex');
 
         const newUser = await userService.registerUser(
           tempEmail,

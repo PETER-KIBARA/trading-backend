@@ -1,14 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Loader, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { apiClient } from '../services/api';
+import { useAuthStore, useAccountStore } from '../context/store';
 import {
+  getOAuthCallbackError,
+  mergeOAuthCallbackParams,
   parseDerivOAuthCallback,
   saveDerivOAuthAccounts,
   type DerivOAuthAccount,
 } from '../services/derivAuth';
+import { DerivAccount } from '../types';
 
 type RedirectStatus = 'processing' | 'success' | 'error';
+
+interface OAuthConnectResponse {
+  success: boolean;
+  accessToken?: string;
+  error?: string;
+  accounts?: Array<{
+    id: string;
+    accountId: string;
+    accountName: string;
+    currency: string;
+    balance?: number;
+    connectionStatus?: string;
+  }>;
+}
 
 interface ApiErrorShape {
   response?: {
@@ -16,45 +34,62 @@ interface ApiErrorShape {
       error?: string;
     };
   };
+  message?: string;
 }
 
 function isApiError(error: unknown): error is ApiErrorShape {
   return typeof error === 'object' && error !== null && 'response' in error;
 }
 
-async function syncAccountsWithBackend(
-  search: string,
-  accounts: DerivOAuthAccount[],
-): Promise<void> {
-  const params = new URLSearchParams(search);
-  const payload = accounts.map((account, index) => {
-    const position = index + 1;
-    return {
-      token: account.token,
-      accountId: account.accountId,
-      currency: params.get(`cur${position}`) || 'USD',
-    };
-  });
+function mapOAuthAccountsToStore(
+  accounts: OAuthConnectResponse['accounts'],
+): DerivAccount[] {
+  if (!accounts?.length) return [];
 
-  try {
-    const response = await apiClient.connectDerivOAuthAccounts(payload);
-
-    if (response.data.accessToken) {
-      apiClient.setToken(response.data.accessToken);
-    }
-  } catch (error) {
-    // Local OAuth tokens are already stored; backend sync is best-effort when logged in.
-    console.warn('Backend OAuth sync skipped or failed:', error);
-  }
+  return accounts.map((account, index) => ({
+    id: account.id,
+    accountId: account.accountId,
+    accountName: account.accountName,
+    accountType: 'real' as const,
+    balance: account.balance ?? 0,
+    currency: account.currency || 'USD',
+    isDefault: index === 0,
+    connectionStatus: (account.connectionStatus as DerivAccount['connectionStatus']) || 'connected',
+    createdAt: new Date().toISOString(),
+  }));
 }
 
-/**
- * OAuth Redirect Handler
- * Parses Deriv callback query params (acct1/token1, acct2/token2, …),
- * persists accounts in localStorage, optionally syncs with the backend.
- */
+async function syncAccountsWithBackend(
+  search: string,
+  hash: string,
+  accounts: DerivOAuthAccount[],
+): Promise<OAuthConnectResponse> {
+  const params = mergeOAuthCallbackParams(search, hash);
+  const payload = accounts.map((account, index) => ({
+    token: account.token,
+    accountId: account.accountId,
+    currency: params.get(`cur${index + 1}`) || 'USD',
+  }));
+
+  const response = await apiClient.connectDerivOAuthAccounts(payload);
+  const data = response.data as OAuthConnectResponse;
+
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to connect accounts on server');
+  }
+
+  return data;
+}
+
+async function establishAuthSession(): Promise<void> {
+  const { setUser, setAuthenticated, setLoading } = useAuthStore.getState();
+  const response = await apiClient.getProfile();
+  setUser(response.data.user);
+  setAuthenticated(true);
+  setLoading(false);
+}
+
 export const OAuthRedirectPage: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const hasHandledCallback = useRef(false);
 
@@ -67,26 +102,58 @@ export const OAuthRedirectPage: React.FC = () => {
 
     const handleOAuthCallback = async () => {
       try {
-        const accounts = parseDerivOAuthCallback(location.search);
+        const oauthError = getOAuthCallbackError(location.search, location.hash);
+        if (oauthError) {
+          throw new Error(oauthError);
+        }
+
+        const accounts = parseDerivOAuthCallback(location.search, location.hash);
 
         if (accounts.length === 0) {
-          throw new Error('No valid Deriv account tokens found in OAuth callback');
+          throw new Error(
+            'No Deriv account tokens found. Check that your Deriv app redirect URL matches this site exactly.',
+          );
         }
 
         saveDerivOAuthAccounts(accounts);
-        setMessage(`Connected ${accounts.length} account(s). Finalizing...`);
+        setMessage(`Found ${accounts.length} account(s). Connecting to TradeAI...`);
 
-        await syncAccountsWithBackend(location.search, accounts);
+        const syncResult = await syncAccountsWithBackend(
+          location.search,
+          location.hash,
+          accounts,
+        );
+
+        if (syncResult.accessToken) {
+          apiClient.setToken(syncResult.accessToken);
+        } else if (!localStorage.getItem('accessToken')) {
+          throw new Error('Server did not return a session token. Please try again.');
+        }
+
+        const storeAccounts = mapOAuthAccountsToStore(syncResult.accounts);
+        if (storeAccounts.length > 0) {
+          useAccountStore.getState().setAccounts(storeAccounts);
+          useAccountStore.getState().setSelectedAccount(storeAccounts[0]);
+        }
+
+        await establishAuthSession();
 
         setStatus('success');
-        setMessage(`Successfully connected ${accounts.length} account(s)!`);
+        setMessage(`Successfully connected ${accounts.length} Deriv account(s)!`);
 
-        navigate('/', { replace: true });
+        // Full navigation ensures auth state and dashboard data reload cleanly
+        window.setTimeout(() => {
+          window.location.replace('/');
+        }, 800);
       } catch (error: unknown) {
         setStatus('error');
 
         if (isApiError(error)) {
-          setMessage(error.response?.data?.error || 'Failed to process OAuth login');
+          setMessage(
+            error.response?.data?.error ||
+              error.message ||
+              'Failed to sync Deriv accounts with the server',
+          );
         } else if (error instanceof Error) {
           setMessage(error.message);
         } else {
@@ -98,7 +165,7 @@ export const OAuthRedirectPage: React.FC = () => {
     };
 
     void handleOAuthCallback();
-  }, [location.search, navigate]);
+  }, [location.search, location.hash]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -128,7 +195,9 @@ export const OAuthRedirectPage: React.FC = () => {
             <p className="text-red-200 mb-4">{message}</p>
             <button
               type="button"
-              onClick={() => navigate('/connect-deriv')}
+              onClick={() => {
+                window.location.href = '/connect-deriv';
+              }}
               className="btn-primary w-full"
             >
               Try Again

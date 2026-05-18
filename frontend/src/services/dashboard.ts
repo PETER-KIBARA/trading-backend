@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { getActiveDerivAccount, getDerivOAuthAccounts, hasDerivConnection } from './derivAuth';
 import { DerivAccount, Bot, Trade, TradeStats } from '../types';
 
 export interface RiskSummary {
@@ -32,12 +33,55 @@ export const dashboardService = {
     const defaultAccount = (defaultAccountRes as any).data.account as DerivAccount | null;
     const bots = botsRes.data.bots as Bot[];
 
-    const activeAccount = defaultAccount ?? accounts[0] ?? null;
+    let activeAccount = defaultAccount ?? accounts[0] ?? null;
+
+    if (!activeAccount && hasDerivConnection()) {
+      const oauthAccount = getActiveDerivAccount();
+      if (oauthAccount) {
+        activeAccount = {
+          id: `oauth-${oauthAccount.accountId}`,
+          accountId: oauthAccount.accountId,
+          accountName: oauthAccount.accountId,
+          accountType: 'real',
+          balance: 0,
+          currency: 'USD',
+          isDefault: true,
+          connectionStatus: 'connected',
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
 
     if (!activeAccount) {
       return {
         accounts,
-        defaultAccount,
+        defaultAccount: null,
+        bots,
+        openTrades: [],
+        recentTrades: [],
+        tradeStats: null,
+        riskSummary: null,
+      };
+    }
+
+    const isLocalOAuthAccount = activeAccount.id.startsWith('oauth-');
+    if (isLocalOAuthAccount) {
+      const oauthAccounts = getDerivOAuthAccounts();
+      const linkedAccounts: DerivAccount[] = oauthAccounts.map((oauthAccount, index) => ({
+        id: `oauth-${oauthAccount.accountId}`,
+        accountId: oauthAccount.accountId,
+        accountName: oauthAccount.accountId,
+        accountType: 'real' as const,
+        balance: 0,
+        currency: 'USD',
+        isDefault: index === 0,
+        connectionStatus: 'connected' as const,
+        createdAt: new Date().toISOString(),
+      }));
+
+      return {
+        accounts: linkedAccounts.length > 0 ? linkedAccounts : [activeAccount],
+        defaultAccount: activeAccount,
         bots,
         openTrades: [],
         recentTrades: [],
