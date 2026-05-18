@@ -2,7 +2,21 @@
 
 ## 🎯 Configuration Checklist
 
-### Step 1: Get Your Production URLs
+### Step 1: Get Your Production URL{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "env": [
+      {
+        "regex": ".*",
+        "env": [
+          "VITE_DERIV_APP_ID=33eUdlaPLj4gee5BGCXvd",
+          "VITE_API_URL=https://trading-backend-bgks.onrender.com/api"
+        ]
+      }
+    ]
+  }
+}s
 
 **Firebase Frontend:**
 - Check your `firebase.json` or Hosting settings

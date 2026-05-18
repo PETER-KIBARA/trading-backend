@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { AlertCircle, ArrowRight, Link2, Loader } from 'lucide-react';
-
-const DERIV_APP_ID = import.meta.env.VITE_DERIV_APP_ID || '1';
-const DERIV_OAUTH_URL = 'https://oauth.deriv.com/oauth2/authorize';
-const REDIRECT_URI = `${window.location.origin}/oauth-redirect`;
+import { ArrowRight, Link2, Loader } from 'lucide-react';
+import { buildDerivAuthorizeUrl } from '../services/derivAuth';
 
 /**
  * Deriv OAuth Connect Page
@@ -14,19 +11,7 @@ export const DerivConnectPage: React.FC = () => {
 
   const handleOAuthConnect = () => {
     setLoading(true);
-    
-    // Build OAuth URL with required parameters
-    const oauthParams = new URLSearchParams({
-      app_id: DERIV_APP_ID,
-      scope: 'trade', // Request trade scope
-      redirect_uri: REDIRECT_URI,
-      response_type: 'token',
-    });
-
-    const oauthUrl = `${DERIV_OAUTH_URL}?${oauthParams.toString()}`;
-    
-    // Redirect to Deriv OAuth
-    window.location.href = oauthUrl;
+    window.location.href = buildDerivAuthorizeUrl();
   };
 
   return (
@@ -77,7 +62,7 @@ export const DerivConnectPage: React.FC = () => {
                       >
                         <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
                       </svg>
-                      Connect with Deriv OAuth
+                      Connect Deriv Account
                       <ArrowRight size={18} />
                     </>
                   )}
