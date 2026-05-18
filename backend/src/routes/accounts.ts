@@ -6,12 +6,13 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
 
-// All routes require authentication
-router.use(authMiddleware);
-
-// OAuth account connection
+// OAuth account connection - MUST come before auth middleware
+// These endpoints handle authentication internally
 router.post('/oauth/connect', asyncHandler(oauthController.connectOAuthAccounts));
 router.post('/oauth/disconnect', asyncHandler(oauthController.disconnectOAuthAccounts));
+
+// All other routes require authentication
+router.use(authMiddleware);
 
 // Legacy account management
 router.post('/', asyncHandler(accountController.addAccount));

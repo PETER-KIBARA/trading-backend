@@ -51,6 +51,11 @@ export const OAuthRedirectPage: React.FC = () => {
         const response = await apiClient.connectDerivOAuthAccounts(accounts);
 
         if (response.data.success) {
+          // Store the returned access token (for new OAuth users)
+          if (response.data.accessToken) {
+            apiClient.setToken(response.data.accessToken);
+          }
+
           setStatus('success');
           setMessage(`Successfully connected ${accounts.length} account(s)!`);
           
@@ -62,7 +67,7 @@ export const OAuthRedirectPage: React.FC = () => {
         }
       } catch (error: any) {
         setStatus('error');
-        setMessage(error.message || 'Failed to process OAuth login');
+        setMessage(error.response?.data?.error || error.message || 'Failed to process OAuth login');
         console.error('OAuth error:', error);
       }
     };
