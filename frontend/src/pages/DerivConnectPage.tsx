@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowRight, Link2, Loader } from 'lucide-react';
-import { buildDerivAuthorizeUrl } from '../services/derivAuth';
+import {
+  buildDerivAuthorizeUrl,
+  DERIV_OAUTH_FLOW,
+  getOAuthRedirectUri,
+} from '../services/derivAuth';
 
 /**
  * Deriv OAuth Connect Page
@@ -9,9 +13,15 @@ import { buildDerivAuthorizeUrl } from '../services/derivAuth';
 export const DerivConnectPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
-  const handleOAuthConnect = () => {
+  const handleOAuthConnect = async () => {
     setLoading(true);
-    window.location.href = buildDerivAuthorizeUrl();
+    try {
+      const url = await buildDerivAuthorizeUrl();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Failed to start Deriv OAuth:', error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,6 +39,33 @@ export const DerivConnectPage: React.FC = () => {
             </div>
             <p className="text-slate-300">
               Securely authorize your Deriv account with one click. Your tokens are encrypted server-side.
+            </p>
+          </section>
+
+          <section className="surface border border-amber-400/20 bg-amber-400/10 p-6">
+            <h3 className="text-lg font-semibold text-amber-50 mb-2">Deriv app configuration required</h3>
+            <p className="text-sm text-amber-100/90 mb-3">
+              In{' '}
+              <a
+                href="https://app.deriv.com/account/settings/apps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-cyan-200"
+              >
+                Deriv Application Manager
+              </a>
+              , set the <strong>Website URL</strong> to exactly:
+            </p>
+            <code className="block rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-cyan-200 break-all">
+              {getOAuthRedirectUri()}
+            </code>
+            <p className="mt-3 text-xs text-amber-100/80">
+              Flow: {DERIV_OAUTH_FLOW === 'pkce' ? 'OAuth 2.0 (PKCE)' : 'Legacy OAuth'} · App ID:{' '}
+              {import.meta.env.VITE_DERIV_APP_ID || 'not set'}
+            </p>
+            <p className="mt-2 text-xs text-amber-100/70">
+              If Deriv keeps you on their dashboard after login, the Website URL above does not match
+              what is saved in Deriv (must include <code className="text-cyan-200">/oauth-redirect</code>).
             </p>
           </section>
 

@@ -32,6 +32,9 @@ export const ENV = {
   DERIV: {
     API_URL: process.env.DERIV_API_URL || 'wss://ws.derivws.com/websockets/v3',
     APP_ID: process.env.DERIV_APP_ID || 'your_deriv_app_id',
+    CLIENT_ID: process.env.DERIV_CLIENT_ID || process.env.DERIV_APP_ID || 'your_deriv_app_id',
+    CLIENT_SECRET: process.env.DERIV_CLIENT_SECRET || '',
+    TOKEN_URL: process.env.DERIV_TOKEN_URL || 'https://auth.deriv.com/oauth2/token',
   },
 
   // Encryption

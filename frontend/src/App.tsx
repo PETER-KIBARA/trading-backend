@@ -15,6 +15,7 @@ import OAuthRedirectPage from './pages/OAuthRedirectPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
+import OAuthCallbackDetector from './components/OAuthCallbackDetector';
 
 function App(): JSX.Element {
   const { isLoading } = useAuth();
@@ -25,6 +26,7 @@ function App(): JSX.Element {
 
   return (
     <Router>
+      <OAuthCallbackDetector />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />

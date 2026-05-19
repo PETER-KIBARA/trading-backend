@@ -82,6 +82,15 @@ class ApiClient {
     return this.instance.post('/accounts/oauth/connect', { accounts });
   }
 
+  exchangeDerivPkceCode(payload: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+    state: string;
+  }) {
+    return this.instance.post('/accounts/oauth/pkce', payload);
+  }
+
   addAccount(accountId: string, accountName: string, token: string, accountType: string) {
     return this.instance.post('/accounts', { accountId, accountName, token, accountType });
   }

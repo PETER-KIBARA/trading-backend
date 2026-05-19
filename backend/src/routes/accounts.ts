@@ -9,6 +9,7 @@ const router = Router();
 // OAuth account connection - MUST come before auth middleware
 // These endpoints handle authentication internally
 router.post('/oauth/connect', asyncHandler(oauthController.connectOAuthAccounts));
+router.post('/oauth/pkce', asyncHandler(oauthController.exchangePkceOAuth));
 router.post('/oauth/disconnect', asyncHandler(oauthController.disconnectOAuthAccounts));
 
 // All other routes require authentication

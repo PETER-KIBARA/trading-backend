@@ -4,7 +4,12 @@ import { Loader, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuthStore, useAccountStore } from '../context/store';
 import {
+  clearPkceSession,
   getOAuthCallbackError,
+  getOAuthRedirectUri,
+  getPkceSession,
+  isLegacyOAuthCallback,
+  isPkceOAuthCallback,
   mergeOAuthCallbackParams,
   parseDerivOAuthCallback,
   saveDerivOAuthAccounts,
@@ -59,7 +64,7 @@ function mapOAuthAccountsToStore(
   }));
 }
 
-async function syncAccountsWithBackend(
+async function syncLegacyAccountsWithBackend(
   search: string,
   hash: string,
   accounts: DerivOAuthAccount[],
@@ -81,12 +86,65 @@ async function syncAccountsWithBackend(
   return data;
 }
 
+async function syncPkceWithBackend(
+  search: string,
+  hash: string,
+): Promise<OAuthConnectResponse> {
+  const params = mergeOAuthCallbackParams(search, hash);
+  const code = params.get('code');
+  const returnedState = params.get('state');
+
+  if (!code) {
+    throw new Error('No authorization code received from Deriv');
+  }
+
+  const { codeVerifier, state: savedState } = getPkceSession();
+
+  if (!codeVerifier) {
+    throw new Error('OAuth session expired. Please start the connection again.');
+  }
+
+  if (returnedState && savedState && returnedState !== savedState) {
+    throw new Error('OAuth state mismatch. Please try connecting again.');
+  }
+
+  const response = await apiClient.exchangeDerivPkceCode({
+    code,
+    codeVerifier,
+    redirectUri: getOAuthRedirectUri(),
+    state: returnedState || savedState || '',
+  });
+
+  clearPkceSession();
+
+  const data = response.data as OAuthConnectResponse;
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to complete OAuth login');
+  }
+
+  return data;
+}
+
 async function establishAuthSession(): Promise<void> {
   const { setUser, setAuthenticated, setLoading } = useAuthStore.getState();
   const response = await apiClient.getProfile();
   setUser(response.data.user);
   setAuthenticated(true);
   setLoading(false);
+}
+
+function applySessionFromSync(syncResult: OAuthConnectResponse): void {
+  if (syncResult.accessToken) {
+    apiClient.setToken(syncResult.accessToken);
+  } else if (!localStorage.getItem('accessToken')) {
+    throw new Error('Server did not return a session token. Please try again.');
+  }
+
+  const storeAccounts = mapOAuthAccountsToStore(syncResult.accounts);
+  if (storeAccounts.length > 0) {
+    useAccountStore.getState().setAccounts(storeAccounts);
+    useAccountStore.getState().setSelectedAccount(storeAccounts[0]);
+  }
 }
 
 export const OAuthRedirectPage: React.FC = () => {
@@ -107,41 +165,38 @@ export const OAuthRedirectPage: React.FC = () => {
           throw new Error(oauthError);
         }
 
-        const accounts = parseDerivOAuthCallback(location.search, location.hash);
+        const isLegacy = isLegacyOAuthCallback(location.search, location.hash);
+        const isPkce = isPkceOAuthCallback(location.search, location.hash);
 
-        if (accounts.length === 0) {
+        if (!isLegacy && !isPkce) {
           throw new Error(
-            'No Deriv account tokens found. Check that your Deriv app redirect URL matches this site exactly.',
+            'No Deriv OAuth data in this URL. Confirm your Deriv app Website URL is exactly ' +
+              getOAuthRedirectUri(),
           );
         }
 
-        saveDerivOAuthAccounts(accounts);
-        setMessage(`Found ${accounts.length} account(s). Connecting to TradeAI...`);
+        let syncResult: OAuthConnectResponse;
 
-        const syncResult = await syncAccountsWithBackend(
-          location.search,
-          location.hash,
-          accounts,
-        );
+        if (isLegacy) {
+          const accounts = parseDerivOAuthCallback(location.search, location.hash);
+          if (accounts.length === 0) {
+            throw new Error('No valid Deriv account tokens found in OAuth callback');
+          }
 
-        if (syncResult.accessToken) {
-          apiClient.setToken(syncResult.accessToken);
-        } else if (!localStorage.getItem('accessToken')) {
-          throw new Error('Server did not return a session token. Please try again.');
+          saveDerivOAuthAccounts(accounts);
+          setMessage(`Found ${accounts.length} account(s). Connecting to TradeAI...`);
+          syncResult = await syncLegacyAccountsWithBackend(location.search, location.hash, accounts);
+        } else {
+          setMessage('Exchanging authorization code with TradeAI...');
+          syncResult = await syncPkceWithBackend(location.search, location.hash);
         }
 
-        const storeAccounts = mapOAuthAccountsToStore(syncResult.accounts);
-        if (storeAccounts.length > 0) {
-          useAccountStore.getState().setAccounts(storeAccounts);
-          useAccountStore.getState().setSelectedAccount(storeAccounts[0]);
-        }
-
+        applySessionFromSync(syncResult);
         await establishAuthSession();
 
         setStatus('success');
-        setMessage(`Successfully connected ${accounts.length} Deriv account(s)!`);
+        setMessage('Successfully connected your Deriv account!');
 
-        // Full navigation ensures auth state and dashboard data reload cleanly
         window.setTimeout(() => {
           window.location.replace('/');
         }, 800);
